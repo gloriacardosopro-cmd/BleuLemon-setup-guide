@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dev Setup Guide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0}
+
+/* Layout: sticky step list on the left, one step card on the right; on phones the list folds behind a button. */
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --ink:#131822; --muted:#566074; --line:#dbe0e8;
+  --accent:#2347c9; --accent-ink:#ffffff; --accent-soft:#e7edfd;
+  --ok:#17794a; --ok-soft:#e3f4ea; --bad:#b8301f; --bad-soft:#fbe9e6;
+  --warn:#7a5200; --warn-soft:#fff2d3;
+  --code-bg:#0e1522; --code-ink:#e4ebf7; --code-line:#223047;
+  --f-display:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c1118; --surface:#141b26; --ink:#e6ebf4; --muted:#93a0b5; --line:#263143;
+  --accent:#7d9cff; --accent-ink:#0b1020; --accent-soft:#1b2744;
+  --ok:#55d08f; --ok-soft:#133323; --bad:#ff8a78; --bad-soft:#3a1a16;
+  --warn:#f2c66d; --warn-soft:#352a10;
+  --code-bg:#080c13; --code-ink:#e4ebf7; --code-line:#1f2a3b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1118; --surface:#141b26; --ink:#e6ebf4; --muted:#93a0b5; --line:#263143;
+  --accent:#7d9cff; --accent-ink:#0b1020; --accent-soft:#1b2744;
+  --ok:#55d08f; --ok-soft:#133323; --bad:#ff8a78; --bad-soft:#3a1a16;
+  --warn:#f2c66d; --warn-soft:#352a10;
+  --code-bg:#080c13; --code-ink:#e4ebf7; --code-line:#1f2a3b; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+.brand h1{font:700 26px/1.1 var(--f-display);margin:0;letter-spacing:-.01em;text-wrap:balance}
+.brand p{margin:4px 0 0;color:var(--muted)}
+.prog{flex:1 1 260px;max-width:420px;min-width:0}
+.prog-row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px;font-variant-numeric:tabular-nums}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.grid{display:grid;grid-template-columns:280px minmax(0,1fr);gap:20px;align-items:start}
+nav.steps{position:sticky;top:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px;max-height:calc(100vh - 24px);overflow:auto}
+nav.steps button{all:unset;box-sizing:border-box;display:flex;gap:10px;align-items:center;width:100%;padding:7px 8px;border-radius:7px;cursor:pointer;font-size:14px;color:var(--muted)}
+nav.steps button:hover{background:var(--bg)}
+nav.steps button:focus-visible,.btn:focus-visible,.copy:focus-visible,.chip:focus-visible,summary:focus-visible,.tgl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+nav.steps button[aria-current="step"]{background:var(--accent-soft);color:var(--ink);font-weight:600}
+.dot{flex:none;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font:500 11px var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.done .dot{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+[aria-current="step"] .dot{border-color:var(--accent);color:var(--accent)}
+.done[aria-current="step"] .dot{color:var(--surface)}
+.tgl{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.where{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;font:500 12px var(--f-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:var(--bg);border:1px solid var(--line);padding:3px 9px;border-radius:5px}
+.card h2{font:700 26px/1.15 var(--f-display);margin:0;letter-spacing:-.01em;text-wrap:balance}
+.card h3{font:600 15px var(--f-body);margin:8px 0 -4px}
+.card p{margin:0;max-width:68ch}
+.card ol,.card ul{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:4px;max-width:68ch}
+code.i{font:500 .88em var(--f-mono);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:1px 5px;white-space:nowrap}
+a{color:var(--accent)}
+.code{position:relative;background:var(--code-bg);border:1px solid var(--code-line);border-radius:8px;min-width:0}
+.code pre{margin:0;padding:12px 76px 12px 14px;overflow-x:auto;font:400 13px/1.6 var(--f-mono);color:var(--code-ink)}
+.copy{position:absolute;top:8px;right:8px;font:500 12px var(--f-body);color:var(--code-ink);background:transparent;border:1px solid var(--code-line);border-radius:6px;padding:3px 9px;cursor:pointer}
+.copy:hover{background:var(--code-line)}
+.code.out pre{padding-right:14px;color:#9fb0c9}
+.out-l{font:500 11px var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:-8px}
+.note{border-radius:8px;padding:10px 12px;font-size:14px;max-width:68ch}
+.note.warn{background:var(--warn-soft);color:var(--warn)}
+.note.tip{background:var(--accent-soft)}
+.note.bad{background:var(--bad-soft);color:var(--bad);font-weight:500}
+.check{display:flex;gap:10px;background:var(--ok-soft);color:var(--ok);border-radius:8px;padding:10px 12px;font-weight:500;max-width:68ch}
+.check b{color:inherit}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;padding-top:16px;border-top:1px solid var(--line)}
+.btn{font:600 14px var(--f-body);border-radius:8px;padding:10px 16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn:hover{background:var(--bg)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.bad{color:var(--bad);border-color:var(--bad)}
+.btn.bad[aria-expanded="true"]{background:var(--bad-soft)}
+.sp{flex:1}
+.help{display:flex;flex-direction:column;gap:10px;background:var(--bg);border:1px solid var(--bad);border-radius:10px;padding:14px}
+.help>b{color:var(--bad)}
+details{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:0}
+details summary{cursor:pointer;padding:10px 12px;font-weight:600;list-style:none}
+details summary::before{content:"+";display:inline-block;width:18px;font-family:var(--f-mono);color:var(--muted)}
+details[open] summary::before{content:"\2212"}
+details .in{padding:0 12px 12px;display:flex;flex-direction:column;gap:12px}
+.choices{display:flex;flex-direction:column;gap:18px}
+.q b{display:block;margin-bottom:8px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 14px var(--f-body);padding:8px 14px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;text-align:left}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.small{font-size:13px;color:var(--muted)}
+.reset{all:unset;cursor:pointer;color:var(--muted);font-size:13px;text-decoration:underline}
+@media (max-width:860px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .tgl{display:block;width:100%}
+  nav.steps{position:static;max-height:none;display:none}
+  nav.steps.open{display:block}
+  .card{padding:18px}
+  .card h2{font-size:22px}
+}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Dev Setup Guide</h1>
+      <p>BleuLemon set_up, Windows 11 with WSL</p>
+    </div>
+    <div class="prog">
+      <div class="prog-row"><span id="progLabel">0 of 20 steps done</span><button class="reset" id="reset" type="button">Reset progress</button></div>
+      <div class="bar" role="progressbar" aria-label="Setup progress" id="bar"><i id="barFill"></i></div>
+    </div>
+  </header>
+  <button class="btn tgl" id="tgl" type="button" aria-expanded="false" aria-controls="nav">All steps</button>
+  <div class="grid">
+    <nav class="steps" id="nav" aria-label="Steps"></nav>
+    <main class="card" id="main" tabindex="-1"></main>
+  </div>
+</div>
+
+<script>
+/* Versions pinned by the course setup. Update here when the BleuLemon set_up updates its requirements. */
+var V = {python:"3.12.9", pandas:"2.2.3"};
+var KEY = "devsetup-guide-v1";
+
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function fmt(s){
+  return esc(s).replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/`([^`]+)`/g,'<code class="i">$1</code>').replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>");
+}
+
+var P = function(x){return {t:"p",x:x}}, OL=function(i){return {t:"ol",i:i}}, UL=function(i){return {t:"ul",i:i}},
+    C=function(x){return {t:"code",x:x}}, O=function(x){return {t:"out",x:x}}, W=function(x){return {t:"warn",x:x}},
+    T=function(x){return {t:"tip",x:x}}, H=function(x){return {t:"h",x:x}}, B=function(x){return {t:"bad",x:x}};
+var RUN = ["Press `Windows` + `R`"];
+
+var STEPS = [
+{id:"start", title:"Before you start", where:"Your choices", custom:"choices"},
+
+{id:"win", title:"Check your Windows version", where:"Windows",
+ blocks:[P("This setup requires **Windows 11**. Since October 14th, 2025, Microsoft has ended support for Windows 10, so it no longer receives security updates."),
+  OL(["Press `Windows` + `R`","Type `winver`","Press `Enter`"])],
+ ok:"The first words of the window are **Windows 11**.",
+ help:[{title:"It says Windows 10", blocks:[
+    P("Update to Windows 11: press `Windows` + `R`, type `ms-settings:windowsupdate`, press `Enter` and click `Check updates`. Install what is offered and repeat until you see \"You're up to date\"."),
+    P("If your machine cannot run Windows 11, contact a teacher. The alternative is native Ubuntu.")]},
+  {title:"Windows cannot apply updates", blocks:[
+    P("Some antiviruses switch off the Update service. Turn it back on:"),
+    OL(["Press `Windows` + `R`, type `services.msc`, press `Enter`","Double-click `Windows Update Service`","Set `Startup` to `Automatic`","Click `Start`, then `Ok`","Try the update again"])]}]},
+
+{id:"virt", title:"Check that virtualization is enabled", where:"Task Manager",
+ blocks:[P("Virtualization must be enabled in your computer's BIOS. On most computers it already is."),
+  OL(["Press `Windows` + `R`","Type `taskmgr` and press `Enter`","Open the `Performance` tab","Click `CPU`"])],
+ ok:"You see **Virtualization: Enabled**.",
+ help:[{title:"Virtualization is disabled, or the line is missing", blocks:[
+    B("Contact a teacher before you try to enable it."),
+    P("Once a teacher has cleared you, open the firmware settings:"),
+    OL(["Press `Windows` + `R`, type `shutdown.exe /r /o /t 1`, press `Enter`","Wait for the computer to shut down","Click `Troubleshoot`, then `Advanced Options`, then `UEFI Firmware Settings`, then `Restart`"]),
+    P("Look in the advanced, CPU or Northbridge settings. The option name depends on the machine:"),
+    UL(["Intel: `Intel VT-x`, `Intel Virtualization Technology`, `Virtualization Extensions`, `Vanderpool`","AMD: `SVM Mode` or `AMD-V`"]),
+    P("Save the changes and reboot from the firmware menu.")]}]},
+
+{id:"wsl", title:"Install WSL and Ubuntu", where:"Command Prompt (administrator)",
+ blocks:[P("WSL runs Ubuntu inside Windows. One command installs WSL 2 and Ubuntu."),
+  W("Open the prompt with `Ctrl` + `Shift` + `Enter`, not just `Enter`. This runs it as administrator."),
+  OL(["Press `Windows` + `R`","Type `cmd`","Press `Ctrl` + `Shift` + `Enter` and accept the UAC confirmation"]),
+  P("In the black window, paste this command and press `Enter`:"),
+  C("wsl --install")],
+ ok:"The command ran without errors. **Restart your computer** before the next step.",
+ help:[{title:"Error message or red text", blocks:[B("Stop here and contact a teacher.")]}]},
+
+{id:"ubuntu", title:"First launch of Ubuntu", where:"Ubuntu",
+ blocks:[P("After the restart, a terminal window says WSL is resuming the Ubuntu installation. When it finishes, Ubuntu opens and asks for:"),
+  UL(["A **username**: one word, lowercase, no special characters (for example `bleulemon` or your first name)","A **password**, then the same password again"]),
+  W("When you type the password, nothing appears on screen. This is normal. Type it and press `Enter`."),
+  P("Then check your username:"), C("whoami")],
+ ok:"`whoami` prints the username you just chose.",
+ help:[{title:"The Ubuntu installation did not resume after the restart", blocks:[
+    OL(["Press `Windows` + `R`, type `cmd`","Press `Ctrl` + `Shift` + `Enter`","Run `wsl --install` again"])]},
+  {title:"`whoami` prints root", blocks:[B("Contact a teacher before continuing.")]}]},
+
+{id:"vscode", title:"Install Visual Studio Code", where:"Windows, then Ubuntu",
+ blocks:[OL(["Go to the [VS Code download page](https://code.visualstudio.com/download)","Click the `Windows` button","Open the downloaded file and install it","Launch VS Code, then close it"]),
+  P("In your **Ubuntu terminal**, install the Remote - WSL extension:"),
+  C("code --install-extension ms-vscode-remote.remote-wsl"),
+  P("Then open VS Code from the terminal:"), C("code .")],
+ ok:"You see `WSL: Ubuntu` in the bottom left corner of the VS Code window.",
+ help:[{title:"No `WSL: Ubuntu` in the corner", blocks:[B("Contact a teacher.")]}]},
+
+{id:"term", title:"Make Ubuntu the default terminal", where:"Windows Terminal",
+ blocks:[P("Windows Terminal is already installed on Windows 11."),
+  OL(["Press `Ctrl` + `,` to open its settings","Change the default profile to `Ubuntu`","Click `Save`","Click `Open JSON file`"]),
+  P("Ubuntu should start in your Ubuntu home directory. Add this line inside the `{ }` block that contains `\"name\": \"Ubuntu\"`:"),
+  C('"commandline": "wsl.exe ~",'),
+  W("Keep the comma at the end of the line."),
+  P("To silence the warning when you paste commands between Windows and Ubuntu, find the line `\"defaultProfile\": \"{2c4de342-...}\"` and add this line after it:"),
+  C('"warning.multiLinePaste": false,'),
+  W("Keep the comma at the end of this line too."),
+  P("Save with `Ctrl` + `S`. The `+` next to the current tab opens a new terminal tab."),
+  T("From now on, \"the terminal\" means this one. Do not use any other terminal.")],
+ ok:"Windows Terminal opens directly on Ubuntu.",
+ help:[{title:"The Ubuntu logo is an orange circle, not a penguin", blocks:[P("This is fine. Continue.")]},
+  {title:"The settings file shows an error after saving", blocks:[P("A missing comma is the usual cause. Check that the line you added before another setting ends with a comma, then save again. If it persists, contact a teacher.")]}]},
+
+{id:"ext", title:"Install VS Code extensions", where:"Ubuntu terminal",
+ blocks:[C("code --install-extension ms-vscode.sublime-keybindings\ncode --install-extension emmanuelbeziat.vscode-great-icons\ncode --install-extension MS-vsliveshare.vsliveshare\ncode --install-extension ms-python.python\ncode --install-extension KevinRose.vsc-python-indent\ncode --install-extension ms-python.vscode-pylance\ncode --install-extension ms-toolsai.jupyter\ncode --install-extension alexcvzz.vscode-sqlite"),
+  P("This installs: Sublime Text Keymap, VSCode Great Icons, Live Share, Python, Python Indent, Pylance, Jupyter and SQLite.")],
+ ok:"Each command reports that the extension was successfully installed.",
+ help:[{title:"A command fails", blocks:[P("Check that VS Code opened correctly from Ubuntu in the previous steps (`WSL: Ubuntu` in the corner). If it did, contact a teacher.")]}]},
+
+{id:"ai", title:"Hide the VS Code AI features", where:"VS Code",
+ blocks:[P("AI features help once you know how to code. Used too early, they hide concepts and make debugging harder to understand. They stay off at the start of the BleuLemon set_up and are re-enabled at the right point in the course."),
+  OL(["Press `Ctrl` + `Shift` + `P` to open the Command Palette","Type `aifeatures` until you see `Chat: Learn How to Hide AI features`, and click it","In the settings that open, tick the option `Disable and hide built-in AI features ...`"]),
+  T("To re-enable them later, repeat the steps and untick the box.")],
+ ok:"The option is ticked.",
+ help:[{title:"I cannot find the command or the option", blocks:[P("VS Code changes the wording of this option from time to time. Contact a teacher.")]}]},
+
+{id:"locale", title:"Check the locale", where:"Ubuntu terminal",
+ blocks:[P("The locale customizes programs to your language and country. It must be English."), C("locale"),
+  P("If the output does not contain `LANG=en_US.UTF-8`, run:"), C("sudo locale-gen en_US.UTF-8")],
+ ok:"The output contains `LANG=en_US.UTF-8`.",
+ help:[{title:"Warning: setlocale: LC_ALL: cannot change locale (en_US.utf-8)", blocks:[
+    C("sudo update-locale LANG=en_US.UTF8\nsudo apt-get update\nsudo apt-get install language-pack-en language-pack-en-base manpages")]}]},
+
+{id:"zsh", title:"Install Zsh, Git and tools", where:"Ubuntu terminal",
+ blocks:[P("We replace the default `bash` shell with `zsh` and install `git` for version control, plus a few useful tools."),
+  C("sudo apt update"), C("sudo apt install -y curl direnv git imagemagick jq make tree unzip vim zsh"),
+  W("These commands ask for your password. Nothing shows while you type it. This is normal.")],
+ ok:"Both commands finish without errors.",
+ help:[{title:"An error appears", blocks:[B("Contact a teacher.")]}]},
+
+{id:"ghinstall", title:"Install the GitHub CLI", where:"Ubuntu terminal",
+ blocks:[P("Run these commands one block at a time. Type your password if asked."),
+  C("sudo apt remove -y gitsome # gh command can conflict with gitsome if already installed\ncurl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg"),
+  C('echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null'),
+  C("sudo apt update"), C("sudo apt install -y gh"),
+  P("Check the installation:"), C("gh --version")],
+ ok:"You see `gh version X.Y.Z (YYYY-MM-DD)`.",
+ help:[{title:"Anything else", blocks:[B("Contact a teacher.")]}]},
+
+{id:"omz", title:"Install Oh My Zsh", where:"Ubuntu terminal",
+ blocks:[C('sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"'),
+  P("If asked `Do you want to change your default shell to zsh?`, press `Y`.")],
+ ok:"Your terminal now shows the Oh My Zsh prompt.",
+ help:[{title:"The prompt did not change", blocks:[B("Ask a teacher.")]}]},
+
+{id:"browser", title:"Link your Windows browser to Ubuntu", where:"Ubuntu terminal",
+ blocks:[P("This lets Ubuntu open the browser installed on Windows. The tool lists the browsers it finds. Type the **number** in front of the one you want."),
+  C('bash -c "$(curl -s https://raw.githubusercontent.com/julesvanrie/wslsetbrowser/refs/heads/main/wslsetbrowser.sh)"'),
+  P("Then reset your terminal:"), C("exec zsh")],
+ ok:"The tool confirmed your browser choice and the terminal restarted.",
+ help:[{title:"The browser list is empty or the script fails", blocks:[B("Contact a teacher.")]}]},
+
+{id:"ghlogin", title:"Connect to GitHub", where:"Ubuntu terminal",
+ blocks:[P("`gh` connects you to GitHub over SSH, with keys instead of a username and password."),
+  W("Do not edit `user:email` in the command. It is not a placeholder for your email address."),
+  C("gh auth login -s 'user:email' -w --git-protocol ssh"),
+  P("`gh` asks a few questions:"),
+  UL(["`Generate a new SSH key to add to your GitHub account?` Press `Enter`. If you already have keys, it asks `Upload your SSH public key to your GitHub account?` Pick your public key file with the arrows and press `Enter`.",
+      "`Enter a passphrase for your new SSH key (Optional)`: most people press `Enter` to skip, since a passphrase would be asked at every use. If you set one, write it down immediately.",
+      "`Title for your SSH key`: press `Enter` to keep `GitHub CLI`."]),
+  P("You then see a one-time code, for example `0EF9-D015`. Copy it, press `Enter`, authorize GitHub CLI in the browser that opens, wait a moment, then come back to the terminal and press `Enter` again."),
+  P("Check the connection:"), C("gh auth status")],
+ ok:"You see `Logged in to github.com as <your username>`.",
+ help:[{title:"Not logged in", blocks:[B("Contact a teacher.")]}]},
+
+{id:"dotfiles", title:"Install the dotfiles", where:"Ubuntu terminal",
+ blocks:function(S){return [
+  P("Dotfiles are pre-configured settings for your terminal, zsh, git and VS Code. You fork the [lewagon/dotfiles](https://github.com/lewagon/dotfiles) repository to your own account, then install it."),
+  S.prev==="yes" ? W("You already did a previous BleuLemon set_up. Open a ticket with a TA before forking. Your old dotfiles may be incompatible. Use the help panel below with them.") : null,
+  H("1. Get your GitHub username"),
+  C("export GITHUB_USERNAME=`gh api user | jq -r '.login'`\necho $GITHUB_USERNAME"),
+  P("Your GitHub username must be printed. If not, stop: the previous GitHub login step has a problem."),
+  H("2. Fork and clone"),
+  C("mkdir -p ~/code/$GITHUB_USERNAME && cd $_\ngh repo fork lewagon/dotfiles --clone"),
+  P("If asked `Are you sure you want to continue connecting (yes/no/[fingerprint])?`, type `yes` and press `Enter`."),
+  H("3. Install"),
+  C("cd ~/code/$GITHUB_USERNAME/dotfiles && zsh install.sh"),
+  P("List the emails registered on your GitHub account. You need one in the next command:"),
+  C("gh api user/emails | jq -r '.[].email'"),
+  C("cd ~/code/$GITHUB_USERNAME/dotfiles && zsh git_setup.sh"),
+  P("It asks for your name (`FirstName LastName`) and your email."),
+  W("The email must be one of those listed by the previous command. Otherwise your progress cannot be tracked."),
+  T("Choose the `...@users.noreply.github.com` address if you do not want your email to show in public repositories.")
+ ].filter(Boolean)},
+ ok:"Your username printed, the fork was cloned, and `git_setup.sh` accepted your name and email.",
+ help:[{title:"No username printed", blocks:[B("Stop and ask for help. The previous GitHub login step has a problem.")]},
+  {title:"I already did a previous BleuLemon set_up (do this with a TA)", blocks:[
+    P("Same machine, or a new machine that already has the dotfiles:"),
+    C("cd ~/code/$GITHUB_USERNAME/dotfiles\ngit diff upstream/master"),
+    P("If the only differences are your name and email, continue the setup."),
+    P("New machine without the dotfiles: on GitHub, open your `dotfiles` repository and check how many commits it is behind and ahead of `lewagon/dotfiles:master`. If the diffs show only your name and email, continue."),
+    P("Meaningful differences, and you accept losing your own changes (recommended): delete your dotfiles repository on GitHub, then delete the local copy and continue."),
+    C("cd ~/code && rm -rf ~/code/$GITHUB_USERNAME/dotfiles"),
+    P("To keep your changes, work with a TA on a branch:"),
+    C("git add .\ngit status # Check what will be committed\ngit commit -m \"Version prior to new setup\"\ngit checkout -b old-setup\ngit push origin old-setup\ngit checkout master\ngit pull upstream master"),
+    P("If you end up in a `MERGING` state, resolve the conflicts and accept the incoming changes for `.zshrc`, `.zprofile` and `settings.json`, especially anything about `pyenv` and Python environments. Then:"),
+    C("git commit --no-edit\ngit push origin master")]}]},
+
+{id:"uv", title:"Create the Python environment", where:"Ubuntu terminal",
+ blocks:[P("Your system has a \"system Python\" that it depends on. We leave it alone and use [`uv`](https://docs.astral.sh/uv/) to manage Python versions and virtual environments per project."),
+  H("Install uv"),
+  C("curl -LsSf https://astral.sh/uv/install.sh | sh"), C("exec zsh"),
+  H("Create the virtual environment"),
+  C("uv venv ~/.lewagon/venvs/lewagon --python " + V.python), C("exec zsh"),
+  P("Check that the right Python is used:"), C("which python3"),
+  P("Expected output:"), O("/home/your-username/.lewagon/venvs/lewagon/bin/python3")],
+ ok:"`which python3` returns the path above, with your own username.",
+ help:[{title:"A different path is returned", blocks:[B("Do not continue. Check with a TA and solve this first.")]}]},
+
+{id:"deps", title:"Install the Python packages", where:"Ubuntu terminal",
+ blocks:[P("Python has a large ecosystem of packages. This installs the common ones used in the BleuLemon set_up. It can take a few minutes."),
+  C("uv pip install -r https://raw.githubusercontent.com/lewagon/data-setup/master/specs/releases/linux.txt")],
+ ok:"The installation ends without errors.",
+ help:[{title:"An error appears", blocks:[B("Contact a teacher.")]}]},
+
+{id:"jtweak", title:"Tweak the Jupyter configuration", where:"Ubuntu terminal",
+ blocks:[P("A small script adjusts Jupyter to your system. It improves how collapsible sections display in notebooks. On WSL it also reconfigures your browser (the dotfiles overwrote it) and fixes a bug where Jupyter always opens the directory tree."),
+  C('bash -c "$(curl -s https://raw.githubusercontent.com/lewagon/data-setup/refs/heads/master/checks/setup_jupyter.sh)"')],
+ ok:"The script ends without errors.",
+ help:[{title:"An error appears", blocks:[B("Contact a teacher.")]}]},
+
+{id:"pycheck", title:"Check Python and Jupyter", where:"Ubuntu terminal, then browser",
+ blocks:function(S){return [
+  C("cd ~/code && exec zsh"), C("jupyter notebook"),
+  P("Your web browser opens on a Jupyter window."),
+  S.vm==="yes" ? T("Virtual machine: VS Code forwards the port. Click `Open in Browser` or go to http://localhost:8888/ (the URL is in the terminal). On the first run, paste the token shown in the terminal and click `Log in`.") : null,
+  OL(["Click `New`, then `Python 3 (ipykernel)`. A new notebook opens.","In a cell, run the first snippet below. It must start with `"+V.python+"`.","In another cell, run the second snippet. It can take a few minutes and must print `"+V.pandas+"`.","Close the browser tab, then stop Jupyter in the terminal with `Ctrl` + `C`."]),
+  C("import sys; sys.version"),
+  C("import pandas as pd\npd.__version__")
+ ].filter(Boolean)},
+ ok:"Python is **"+V.python+"** and pandas is **"+V.pandas+"**.",
+ help:[{title:"Jupyter does not open, or a version differs", blocks:[B("Ask a TA. Do not continue until it is solved.")]}]},
+
+{id:"docker", title:"Install Docker", where:"Windows, then Ubuntu terminal",
+ blocks:function(S){
+  var cpu = S.cpu==="x86" ? "Choose the first option, the one ending in `x86_64`."
+          : S.cpu==="arm" ? "Choose the second option, `Arm`."
+          : "Not sure of your processor? Run `arch` in the Ubuntu terminal. `x86_64` means choose the first option. `aarch64` means choose `Arm`.";
+  return [P("If Docker is already installed, update it to the latest version."),
+  OL(["Open [Install Docker Desktop on Windows](https://docs.docker.com/docker-for-windows/wsl/)","Download and install Docker Desktop. "+cpu,"Start Docker"]),
+  P("Then run in the Ubuntu terminal:"), C("docker run hello-world")]},
+ ok:"The `Hello from Docker!` message prints.",
+ help:[{title:"Permission denied", blocks:[P("Run these one by one, then try `docker run hello-world` again:"),
+    C("sudo groupadd docker"), C("sudo usermod -aG docker $USER"), C("newgrp docker")]},
+  {title:"WARNING: Error loading config file ... permission denied", blocks:[C("sudo rm -rf ~/.docker/"), P("Then try `docker run hello-world` again.")]}]},
+
+{id:"finish", title:"Setup complete", where:"Done", custom:"finish"}
+];
+
+var ORDER = STEPS.map(function(s){return s.id});
+var WORK = STEPS.filter(function(s){return !s.custom}).length;
+var S = {cur:0, done:{}, cpu:"x86", prev:"no", vm:"no"};
+function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);for(var k in o)S[k]=o[k]}}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+load();
+if(S.cur<0||S.cur>=STEPS.length)S.cur=0;
+
+var $=function(id){return document.getElementById(id)};
+function mk(tag,cls,html){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e}
+
+function copyText(text,btn){
+  var done=function(){var o=btn.textContent;btn.textContent="Copied";setTimeout(function(){btn.textContent="Copy"},1400)};
+  var fb=function(){
+    var pre=btn.parentNode.querySelector("pre"),r=document.createRange();r.selectNodeContents(pre);
+    var s=getSelection();s.removeAllRanges();s.addRange(r);btn.textContent="Press Ctrl+C";setTimeout(function(){btn.textContent="Copy"},2200)};
+  try{navigator.clipboard.writeText(text).then(done,fb)}catch(e){fb()}
+}
+
+function block(b){
+  switch(b.t){
+    case "p": return mk("p",null,fmt(b.x));
+    case "h": return mk("h3",null,fmt(b.x));
+    case "ol": case "ul": var l=mk(b.t); b.i.forEach(function(i){l.appendChild(mk("li",null,fmt(i)))}); return l;
+    case "warn": return mk("div","note warn",fmt(b.x));
+    case "tip": return mk("div","note tip",fmt(b.x));
+    case "bad": return mk("div","note bad",fmt(b.x));
+    case "code": case "out":
+      var w=mk("div","code"+(b.t==="out"?" out":"")), pre=mk("pre"); pre.textContent=b.x; w.appendChild(pre);
+      if(b.t==="code"){var c=mk("button","copy","Copy");c.type="button";c.setAttribute("aria-label","Copy command");c.onclick=function(){copyText(b.x,c)};w.appendChild(c)}
+      return w;
+  }
+  return mk("div");
+}
+
+function renderNav(){
+  var nav=$("nav");nav.innerHTML="";
+  STEPS.forEach(function(s,i){
+    var n=STEPS.slice(0,i+1).filter(function(x){return !x.custom}).length;
+    var b=mk("button",S.done[s.id]?"done":"");b.type="button";
+    var dot=mk("span","dot",s.custom?"":(S.done[s.id]?"✓":String(n)));
+    if(s.id==="start")dot.textContent="⚙"; if(s.id==="finish")dot.textContent="★";
+    if(S.done[s.id])dot.textContent="✓";
+    b.appendChild(dot);b.appendChild(mk("span",null,esc(s.title)));
+    if(i===S.cur)b.setAttribute("aria-current","step");
+    b.onclick=function(){go(i)};nav.appendChild(b);
+  });
+}
+function renderProg(){
+  var d=STEPS.filter(function(s){return !s.custom&&S.done[s.id]}).length;
+  $("progLabel").textContent=d+" of "+WORK+" steps done";
+  $("barFill").style.width=(d/WORK*100)+"%";
+  $("bar").setAttribute("aria-valuenow",d);$("bar").setAttribute("aria-valuemax",WORK);$("bar").setAttribute("aria-valuemin",0);
+}
+
+function choiceGroup(label,key,opts,hint){
+  var q=mk("div","q"),t=mk("b",null,esc(label));q.appendChild(t);
+  var g=mk("div","opts");g.setAttribute("role","group");g.setAttribute("aria-label",label);
+  opts.forEach(function(o){
+    var c=mk("button","chip",esc(o[1]));c.type="button";c.setAttribute("aria-pressed",S[key]===o[0]);
+    c.onclick=function(){S[key]=o[0];save();Array.prototype.forEach.call(g.children,function(x){x.setAttribute("aria-pressed","false")});c.setAttribute("aria-pressed","true")};
+    g.appendChild(c)});
+  q.appendChild(g); if(hint)q.appendChild(mk("p","small",esc(hint))); return q;
+}
+
+function render(){
+  var s=STEPS[S.cur],m=$("main");m.innerHTML="";
+  m.appendChild(mk("span","where",esc(s.where)));
+  m.appendChild(mk("h2",null,esc(s.title)));
+
+  if(s.custom==="choices"){
+    m.appendChild(mk("p",null,"Follow the steps in order and run every command as shown. This setup is not an exercise: its only purpose is to prepare your machine in a standard way. Do not experiment or ask an LLM for help. If you get stuck, ask a teacher."));
+    m.appendChild(mk("p","small","Three quick questions so the guide shows only what applies to you. You can change them later from this step."));
+    var c=mk("div","choices");
+    c.appendChild(choiceGroup("What is your processor?","cpu",[["x86","Intel or AMD (x86_64)"],["arm","Arm (aarch64)"],["unk","Not sure"]],"Only used for the Docker download."));
+    c.appendChild(choiceGroup("Have you already done a BleuLemon set_up?","prev",[["no","No"],["yes","Yes"]],"If yes, the dotfiles step needs a TA."));
+    c.appendChild(choiceGroup("Are you running this on a virtual machine?","vm",[["no","No"],["yes","Yes"]]));
+    m.appendChild(c);
+  } else if(s.custom==="finish"){
+    m.appendChild(mk("p",null,"You now have a complete Python virtual environment with the third-party packages for the whole BleuLemon set_up, a configured terminal, GitHub access over SSH, and Docker."));
+    var d=STEPS.filter(function(x){return !x.custom&&S.done[x.id]}).length;
+    m.appendChild(mk("div",d===WORK?"check":"note warn",d===WORK?"All "+WORK+" steps are marked as done.":esc((WORK-d)+" step(s) are not marked as done yet. Open them from the list on the left.")));
+  } else {
+    var bl=typeof s.blocks==="function"?s.blocks(S):s.blocks;
+    bl.forEach(function(b){m.appendChild(block(b))});
+    m.appendChild(mk("div","check","<span aria-hidden='true'>✓</span><span>"+fmt(s.ok)+"</span>"));
+  }
+
+  var helpBox=mk("div","help");helpBox.hidden=true;helpBox.id="helpBox";
+  if(s.help){
+    helpBox.appendChild(mk("b",null,"If it did not work"));
+    s.help.forEach(function(h,idx){
+      var d=mk("details");d.appendChild(mk("summary",null,fmt(h.title)));
+      var inn=mk("div","in");h.blocks.forEach(function(b){inn.appendChild(block(b))});d.appendChild(inn);
+      if(s.id==="dotfiles"&&S.prev==="yes"&&idx===1)d.open=true;
+      helpBox.appendChild(d)});
+    helpBox.appendChild(mk("p","small","Still stuck? Do not experiment. Ask a teacher."));
+  }
+
+  var a=mk("div","actions");
+  var back=mk("button","btn","Back");back.type="button";back.disabled=S.cur===0;if(S.cur===0)back.hidden=true;back.onclick=function(){go(S.cur-1)};a.appendChild(back);
+  a.appendChild(mk("span","sp"));
+  if(s.help){var bad=mk("button","btn bad","Something went wrong");bad.type="button";bad.setAttribute("aria-expanded","false");bad.setAttribute("aria-controls","helpBox");
+    bad.onclick=function(){helpBox.hidden=!helpBox.hidden;bad.setAttribute("aria-expanded",String(!helpBox.hidden));if(!helpBox.hidden)helpBox.scrollIntoView({block:"nearest",behavior:"smooth"})};a.appendChild(bad)}
+  if(S.cur<STEPS.length-1){
+    var nx=mk("button","btn pri",s.custom?"Start":"It worked, next step");nx.type="button";
+    nx.onclick=function(){if(!s.custom)S.done[s.id]=true;go(S.cur+1)};a.appendChild(nx)}
+  if(helpBox.children.length)m.appendChild(helpBox);
+  m.appendChild(a);
+  renderNav();renderProg();
+}
+
+function go(i){
+  S.cur=Math.max(0,Math.min(STEPS.length-1,i));save();render();
+  $("nav").classList.remove("open");$("tgl").setAttribute("aria-expanded","false");
+  $("main").scrollIntoView({block:"start"});
+}
+$("tgl").onclick=function(){var o=$("nav").classList.toggle("open");this.setAttribute("aria-expanded",String(o))};
+$("reset").onclick=function(){
+  if(this.dataset.armed){S={cur:0,done:{},cpu:"x86",prev:"no",vm:"no"};save();this.textContent="Reset progress";delete this.dataset.armed;render()}
+  else{this.dataset.armed="1";this.textContent="Click again to confirm";var b=this;setTimeout(function(){b.textContent="Reset progress";delete b.dataset.armed},3000)}
+};
+render();
+</script>
+
+</body>
+</html>
